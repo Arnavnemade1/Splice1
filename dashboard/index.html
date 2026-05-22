@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splice Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0c;
+      --panel: #101216;
+      --panel-2: #151922;
+      --panel-3: #1b2029;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.14);
+      --text: #f5f7fb;
+      --muted: #9aa3b2;
+      --quiet: #697386;
+      --green: #41e6a2;
+      --green-bg: rgba(65, 230, 162, 0.11);
+      --red: #ff5577;
+      --red-bg: rgba(255, 85, 119, 0.12);
+      --amber: #f6c863;
+      --amber-bg: rgba(246, 200, 99, 0.12);
+      --blue: #5ab8ff;
+      --blue-bg: rgba(90, 184, 255, 0.12);
+      --purple: #a78bfa;
+      --purple-bg: rgba(167, 139, 250, 0.13);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent 75%);
+    }
+
+    .shell {
+      position: relative;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 28px;
+      align-items: center;
+      padding: 22px 28px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 10, 12, 0.92);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(65,230,162,0.18), rgba(90,184,255,0.08));
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-stats {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.03);
+      padding: 12px 14px;
+      min-width: 0;
+    }
+
+    .metric-value {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .metric-label {
+      margin-top: 7px;
+      color: var(--quiet);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 300px minmax(380px, 1fr) 340px 300px;
+      border-top: 1px solid rgba(255,255,255,0.02);
+    }
+
+    .panel {
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      background: rgba(16, 18, 22, 0.96);
+      border-right: 1px solid var(--line);
+    }
+
+    .panel:last-child { border-right: 0; }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 58px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: #d8dee8;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .pill::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--green);
+    }
+
+    .scroll {
+      min-height: 0;
+      overflow: auto;
+      padding: 18px;
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      gap: 8px;
+      padding: 0 0 24px 20px;
+      border-left: 1px solid var(--line);
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -5px;
+      top: 2px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--panel-3);
+      border: 1px solid var(--line-strong);
+    }
+
+    .timeline-item.active::before { background: var(--green); border-color: var(--green); }
+    .timeline-item.alert::before { background: var(--red); border-color: var(--red); }
+
+    .mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--green);
+    }
+
+    .item-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: #edf1f7;
+      overflow-wrap: anywhere;
+    }
+
+    .item-meta {
+      color: var(--quiet);
+      font-size: 11px;
+    }
+
+    .workspace {
+      min-height: 0;
+      overflow: auto;
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .hero-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .status-card,
+    .info-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .status-card strong {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    .status-card span {
+      display: block;
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .status-card.green span { color: var(--green); }
+    .status-card.amber span { color: var(--amber); }
+    .status-card.blue span { color: var(--blue); }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .branches { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); }
+
+    .branch-node {
+      min-height: 76px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      padding: 13px;
+    }
+
+    .branch-node.active {
+      border-color: rgba(65, 230, 162, 0.55);
+      background: var(--green-bg);
+    }
+
+    .branch-label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .branch-id {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .info-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .tag {
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .tag.green { background: var(--green-bg); color: var(--green); }
+    .tag.red { background: var(--red-bg); color: var(--red); }
+    .tag.amber { background: var(--amber-bg); color: var(--amber); }
+    .tag.blue { background: var(--blue-bg); color: var(--blue); }
+    .tag.purple { background: var(--purple-bg); color: var(--purple); }
+
+    .status-card.purple span { color: var(--purple); }
+
+    /* Coordination Tax Meter */
+    .tax-meter {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      padding: 14px 16px;
+      display: grid;
+      gap: 8px;
+    }
+    .tax-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .tax-label { color: var(--muted); }
+    .tax-value {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      min-width: 24px;
+      text-align: right;
+    }
+    .tax-value.nonzero { color: var(--amber); }
+    .tax-value.zero { color: var(--quiet); }
+
+    /* Ledger entry */
+    .ledger-entry {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 12px 14px;
+      display: grid;
+      gap: 6px;
+    }
+    .ledger-entry.conflict { border-color: rgba(246, 200, 99, 0.4); background: var(--amber-bg); }
+    .ledger-entry.superseded { opacity: 0.45; }
+    .ledger-key {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .ledger-meta {
+      font-size: 11px;
+      color: var(--quiet);
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .conf-bar {
+      height: 3px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .conf-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--green);
+      transition: width 0.4s ease;
+    }
+    .conf-fill.low { background: var(--amber); }
+    .conf-fill.verylow { background: var(--red); }
+
+    /* Agent badge */
+    .agent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--purple-bg);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--purple);
+      white-space: nowrap;
+    }
+    .agent-badge::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--purple);
+    }
+    .agent-badge.explorer::before { background: var(--blue); }
+    .agent-badge.verifier::before { background: var(--green); }
+    .agent-badge.executor::before { background: var(--amber); }
+    .agent-badge.auditor::before { background: var(--red); }
+
+    .card-body {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .endpoint-row,
+    .log-line {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.025);
+      padding: 10px 12px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+    }
+
+    .endpoint-path,
+    .log-msg {
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .console {
+      min-height: 0;
+      overflow: auto;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .empty {
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      padding: 28px;
+      color: var(--quiet);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
+
+    @media (max-width: 1180px) {
+      body { overflow: auto; }
+      .shell { height: auto; min-height: 100vh; }
+      header { grid-template-columns: 1fr; }
+      .top-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      main { grid-template-columns: 1fr; }
+      .panel { min-height: 420px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .hero-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="mark">S</div>
+        <div>
+          <h1>Splice Command Center</h1>
+          <div class="subtitle">Agent browser forensics, verified actions, telemetry, and security intelligence.</div>
+        </div>
+      </div>
+      <div class="top-stats">
+        <div class="metric">
+          <div class="metric-value" id="stat-prevented">0</div>
+          <div class="metric-label">Safety Blocks</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="stat-heals">0</div>
+          <div class="metric-label">Self-Heals</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="stat-vulns">0</div>
+          <div class="metric-label">Threats</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="sec-grade">-</div>
+          <div class="metric-label">Security Grade</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value" id="stat-agents">0</div>
+          <div class="metric-label">Agents</div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Causal Timeline</div>
+          <div class="pill">Live</div>
+        </div>
+        <div class="scroll" id="timeline"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Agent Intelligence</div>
+          <div class="pill">Forensics</div>
+        </div>
+        <div class="workspace">
+          <div class="hero-row">
+            <div class="status-card green">
+              <strong>Active Branch</strong>
+              <span id="active-branch">main</span>
+            </div>
+            <div class="status-card blue">
+              <strong>Watch Mode</strong>
+              <span id="watch-mode">Off</span>
+            </div>
+            <div class="status-card amber">
+              <strong>Branches</strong>
+              <span id="branch-count">1</span>
+            </div>
+          </div>
+
+          <div class="section-label">Browser State Forensics</div>
+          <div class="grid" id="forensics-feed"></div>
+
+          <div class="section-label">Verified Action Plans</div>
+          <div class="grid" id="verified-action-feed"></div>
+
+          <div class="section-label">Active Branches</div>
+          <div class="grid branches" id="spec-grid"></div>
+
+          <div class="section-label">Network Intelligence</div>
+          <div class="grid" id="network-map"></div>
+
+          <div class="section-label">Agentic Security</div>
+          <div class="grid" id="agent-security-feed"></div>
+
+          <div class="section-label">Security Audit</div>
+          <div class="grid" id="audit-feed"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Console Stream</div>
+          <div class="pill">Telemetry</div>
+        </div>
+        <div class="console" id="vision-feed"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Coordination Health</div>
+          <div class="pill" id="coord-state-pill">Healthy</div>
+        </div>
+        <div class="workspace">
+          <div class="section-label">Coordination Tax Meter
+            <span style="color:var(--quiet);font-weight:400;font-size:10px">non-zero = overhead</span>
+          </div>
+          <div class="tax-meter" id="tax-meter">
+            <div class="tax-row"><span class="tax-label">Conflicts Detected</span><span class="tax-value zero" id="tax-conflicts">0</span></div>
+            <div class="tax-row"><span class="tax-label">Conflicts Resolved</span><span class="tax-value zero" id="tax-resolved">0</span></div>
+            <div class="tax-row"><span class="tax-label">Actions Blocked</span><span class="tax-value zero" id="tax-blocked">0</span></div>
+            <div class="tax-row"><span class="tax-label">Ownership Violations</span><span class="tax-value zero" id="tax-violations">0</span></div>
+            <div class="tax-row"><span class="tax-label">Forced Releases</span><span class="tax-value zero" id="tax-forced">0</span></div>
+          </div>
+
+          <div class="section-label">Registered Agents</div>
+          <div class="grid" id="agent-registry"></div>
+
+          <div class="section-label">Evidence Ledger
+            <span style="color:var(--quiet);font-weight:400;font-size:10px">promoted findings</span>
+          </div>
+          <div class="grid" id="ledger-feed"></div>
+
+          <div class="section-label">Quorum Status
+            <span style="color:var(--quiet);font-weight:400;font-size:10px">conflicted keys</span>
+          </div>
+          <div class="grid" id="quorum-feed"></div>
+
+          <div class="section-label">User Summon Requests
+            <span style="color:var(--quiet);font-weight:400;font-size:10px">human help calls</span>
+          </div>
+          <div class="grid" id="summons-feed"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Data injected by BrowserManager.ts
+  </script>
+</body>
+</html>
