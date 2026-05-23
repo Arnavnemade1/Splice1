@@ -104,6 +104,24 @@ async def handle_list_tools() -> list[types.Tool]:
                 },
                 "required": ["intent"]
             }
+        ),
+        types.Tool(
+            name="splice_run_security_audit",
+            description="Run the Splice browser security audit and return agent-facing findings.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "targetUrl": {"type": "string", "description": "Target URL to audit."},
+                    "safeMode": {"type": "boolean", "description": "Avoid destructive interactions during the audit."},
+                    "crawl": {"type": "boolean", "description": "Whether to crawl same-origin links."},
+                    "maxCrawlDepth": {"type": "number", "description": "Maximum same-origin pages to inspect."},
+                    "checks": {
+                        "type": "array",
+                        "items": {"type": "string", "enum": ["headers", "xss", "auth", "data", "deps", "exploits", "openclaw"]},
+                    }
+                },
+                "required": ["targetUrl"]
+            }
         )
     ]
 
@@ -132,6 +150,10 @@ async def handle_call_tool(
 
     elif name == "splice_compile_verified_action":
         result = await call_bridge("compileVerifiedAction", arguments)
+        return [types.TextContent(type="text", text=json.dumps(result))]
+
+    elif name == "splice_run_security_audit":
+        result = await call_bridge("runSecurityAudit", arguments)
         return [types.TextContent(type="text", text=json.dumps(result))]
             
     raise ValueError(f"Unknown tool: {name}")

@@ -359,8 +359,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             checks: {
               type: "array",
-              items: { type: "string", enum: ["headers", "xss", "auth", "data", "deps"] },
-              description: "Which checks to run. Defaults to all: headers, xss, auth, data, deps."
+              items: { type: "string", enum: ["headers", "xss", "auth", "data", "deps", "exploits", "openclaw"] },
+              description: "Which checks to run. Defaults to all: headers, xss, auth, data, deps, exploits, openclaw."
             }
           },
           required: ["targetUrl"]
@@ -753,7 +753,7 @@ ${recommendations || "- No major friction points detected. The current UI appear
     if (request.params.name === "scan_local_secrets") {
       const { directory = process.cwd() } = (request.params.arguments as any) || {};
       const results: string[] = [];
-      const SECRET_RX = /(AKIA[0-9A-Z]{16}|sk_(live|test)_[a-zA-Z0-9]{20,}|eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+)/;
+      const SECRET_RX = /(AKIA[0-9A-Z]{16}|sk_(live|test)_[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z\-_]{35}|eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+)/;
 
       const scanDir = (dir: string) => {
         if (!fs.existsSync(dir)) return;

@@ -270,6 +270,163 @@ You can also generate a report from the MCP tool:
 }
 ```
 
+### Splice CLI
+
+Splice also ships a local CLI with a pixel-style banner and deployable Gemini-backed coding agents:
+
+```bash
+npm run build
+node dist/cli.js logo
+node dist/cli.js config set-gemini-key YOUR_GEMINI_KEY
+node dist/cli.js agents deploy all . --run
+```
+
+Available agent roles:
+
+- `review` — bug, regression, and test-gap review
+- `optimize` — performance and maintainability recommendations
+- `secure` — security and secret-exposure review
+
+Agent manifests and local CLI config are stored under `.splice/cli/`, which is ignored by git.
+
+#### CLI quick start
+
+```bash
+npm install
+npm run build
+
+# show the CLI banner
+node dist/cli.js logo
+
+# save your Gemini key locally for this repo only
+node dist/cli.js config set-gemini-key YOUR_GEMINI_KEY
+
+# inspect config (key is masked)
+node dist/cli.js config show
+
+# deploy and run a review agent against the current repo
+node dist/cli.js agents review .
+
+# deploy all three agents and run them
+node dist/cli.js agents deploy all . --run
+
+# list deployed agent manifests
+node dist/cli.js agents list
+
+# rerun a specific deployed agent later
+node dist/cli.js agents run AGENT_ID
+```
+
+#### What the CLI is for
+
+- `review` checks correctness, regressions, and missing tests in your codebase
+- `optimize` looks for performance and maintainability wins in your codebase
+- `secure` looks for secrets, unsafe defaults, and security hardening gaps in your codebase
+
+The CLI agents analyze a codebase path. They are for repo review, optimization, and security analysis, not browser-driving a website.
+
+### Testing A Website Or Your Own App
+
+There are two practical ways to try Splice:
+
+#### 1. Test Splice itself locally
+
+This proves the full feature path on a throwaway fixture app:
+
+```bash
+npm install
+npm test
+```
+
+That run checks:
+
+- browser launch and navigation
+- telemetry capture
+- obstruction detection
+- verified action planning and execution
+- prompt-injection redaction
+- Gemini-style secret blocking on outbound POSTs
+- encrypted snapshot save/load
+- security audit generation
+- OpenClaw gateway handshake
+- Command Center report generation
+- multi-agent coordination conflict and handoff logic
+
+#### 2. Test against a real website or your own localhost app
+
+If you want to drive a real site, run Splice as an MCP server and connect it from an MCP-capable client:
+
+```bash
+npm install
+npm run build
+node dist/index.js
+```
+
+Then use these tool calls in your MCP client:
+
+```json
+{
+  "name": "navigate",
+  "arguments": {
+    "url": "http://localhost:3000"
+  }
+}
+```
+
+```json
+{
+  "name": "diagnose_agent_state",
+  "arguments": {
+    "goal": "submit the signup form"
+  }
+}
+```
+
+```json
+{
+  "name": "compile_verified_action",
+  "arguments": {
+    "intent": "type email address",
+    "value": "me@example.com",
+    "execute": true,
+    "constraints": {
+      "avoidDestructiveActions": true
+    }
+  }
+}
+```
+
+```json
+{
+  "name": "run_security_audit",
+  "arguments": {
+    "targetUrl": "http://localhost:3000",
+    "safeMode": true,
+    "crawl": true,
+    "maxCrawlDepth": 3
+  }
+}
+```
+
+#### Suggested flow for your own app
+
+1. Start your app locally, for example `http://localhost:3000`.
+2. Start Splice with `node dist/index.js`.
+3. Connect your MCP client to Splice.
+4. Call `navigate` to open your app.
+5. Call `get_semantic_tree_optimized` or `diagnose_agent_state` to inspect the current page.
+6. Call `compile_verified_action` with `execute: true` to safely try an interaction.
+7. Call `run_security_audit` for a browser-level security pass.
+8. Call `generate_observability_report` to get a local HTML Command Center report.
+
+#### Good targets to try first
+
+- your local dev app on `localhost`
+- a staging environment you control
+- a small static site you own
+
+Start with non-destructive flows like login pages, search forms, settings pages, docs navigation, or signup flows before pointing it at anything sensitive.
+
 ### Prove It Locally
 
 Splice includes a deterministic local validation/demo run. It starts a throwaway web app on `127.0.0.1`, drives Chromium through the advertised failure modes, and writes two human-viewable artifacts:
@@ -297,6 +454,7 @@ The validation covers:
 - security audit feedback
 - OpenClaw gateway handshake and status command
 - Command Center report generation
+- multi-agent ownership, quorum conflict, handoff, and summon coordination checks
 
 The command prints the exact report paths when it finishes.
 

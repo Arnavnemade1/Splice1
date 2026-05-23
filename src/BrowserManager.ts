@@ -135,7 +135,7 @@ export class BrowserManager {
       const method = request.method();
       const postData = request.postData() || '';
       const payload = `${url} ${postData}`;
-      const SECRET_RX = /(AKIA[0-9A-Z]{16}|sk_(live|test)_[a-zA-Z0-9]{20,}|eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+)/;
+      const SECRET_RX = /(AKIA[0-9A-Z]{16}|sk_(live|test)_[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z\-_]{35}|eyJ[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-]+)/;
       
       if (method !== 'GET' && SECRET_RX.test(payload)) {
         console.error(`[Agent Firewall] BLOCKED EXFILTRATION ATTEMPT to ${url}`);
