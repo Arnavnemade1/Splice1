@@ -299,6 +299,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: { type: "object", properties: {} },
       },
       {
+        name: "launch_command_center",
+        description: "Start a localhost Command Center server for the latest observability dashboard and return a browser-friendly URL.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            preferredPort: { type: "number", description: "Optional preferred localhost port. Defaults to 4821." },
+          },
+        },
+      },
+      {
         name: "capture_annotated_screenshot",
         description: "Vibe Coding: Capture a base64 screenshot where every interactive element has a bright bounding box and ID label.",
         inputSchema: { type: "object", properties: {} },
@@ -618,6 +628,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (request.params.name === "generate_observability_report") {
       const reportPath = await browser.generateObservabilityReport();
       return { content: [{ type: "text", text: `Observability Dashboard generated at: ${reportPath}. Open this file in your browser to visualize the agent's processes.` }] };
+    }
+
+    if (request.params.name === "launch_command_center") {
+      const { preferredPort } = (request.params.arguments as { preferredPort?: number }) || {};
+      const launch = await browser.launchCommandCenter(preferredPort);
+      return { content: [{ type: "text", text: `Command Center is running at ${launch.url} (report: ${launch.reportPath}).` }] };
     }
 
     if (request.params.name === "capture_annotated_screenshot") {

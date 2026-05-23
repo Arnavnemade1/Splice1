@@ -49,6 +49,8 @@ async function dispatch(action: string, args: Record<string, any>) {
       return browser.runSecurityAudit(args.targetUrl, args);
     case 'generateObservabilityReport':
       return { path: await browser.generateObservabilityReport() };
+    case 'launchCommandCenter':
+      return browser.launchCommandCenter(args.preferredPort);
     case 'close':
       await browser.close();
       return { ok: true };

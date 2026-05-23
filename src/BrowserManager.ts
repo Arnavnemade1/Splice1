@@ -12,6 +12,7 @@ import { CryptoManager } from './CryptoManager.js';
 import { SecurityAuditor } from './SecurityAuditor.js';
 import { AgentCoordinator } from './AgentCoordinator.js';
 import { OpenClawGateway } from './OpenClawGateway.js';
+import { CommandCenterServer } from './CommandCenterServer.js';
 import { discordNotifier } from './DiscordWebhook.js';
 import type { AuditOptions } from './SecurityAuditor.js';
 import type { AgentStateDiagnosis, LedgerEntry, SemanticNode, SessionMetrics, VerifiedActionPlan, SummonRequest } from './types.js';
@@ -40,6 +41,7 @@ export class BrowserManager {
 
   // OpenClaw Gateway instance
   private openclawGateway: OpenClawGateway | null = null;
+  private commandCenterServer: CommandCenterServer | null = null;
 
   public metrics: SessionMetrics = {
     tokensSavedEstimate: 0,
@@ -86,9 +88,9 @@ export class BrowserManager {
 
     if (process.env.SPLICE_AUTO_OPEN_DASHBOARD === '1') {
       try {
-        const reportPath = await this.generateObservabilityReport();
-        this.openDashboard(reportPath);
-        console.error(`[Splice] Command Center launched at ${reportPath}`);
+        const launch = await this.launchCommandCenter();
+        this.openDashboard(launch.url);
+        console.error(`[Splice] Command Center launched at ${launch.url} (report: ${launch.reportPath})`);
       } catch (e) {
         console.error("[Splice] Failed to auto-launch Command Center:", e);
       }
@@ -1482,7 +1484,28 @@ export class BrowserManager {
 
     const reportPath = path.join(this.snapshotsDir, `report-${Date.now()}.html`);
     fs.writeFileSync(reportPath, html);
+    this.commandCenterServer?.updateReportPath(reportPath);
     return reportPath;
+  }
+
+  async launchCommandCenter(preferredPort?: number) {
+    const reportPath = this.resolveLatestCommandCenterReportPath() ?? await this.generateObservabilityReport();
+    if (!this.commandCenterServer) {
+      this.commandCenterServer = new CommandCenterServer(this.snapshotsDir);
+    }
+    return this.commandCenterServer.start(
+      reportPath,
+      preferredPort ?? Number(process.env.SPLICE_COMMAND_CENTER_PORT || 4821)
+    );
+  }
+
+  private resolveLatestCommandCenterReportPath(): string | null {
+    if (!fs.existsSync(this.snapshotsDir)) return null;
+    const reportFiles = fs.readdirSync(this.snapshotsDir)
+      .filter(file => file.startsWith('report-') && file.endsWith('.html'))
+      .sort((a, b) => b.localeCompare(a));
+    if (reportFiles.length === 0) return null;
+    return path.join(this.snapshotsDir, reportFiles[0]);
   }
 
   async maintenanceCleanup(olderThanDays: number = 7) {
@@ -1564,6 +1587,10 @@ export class BrowserManager {
   }
 
   async close() {
+    if (this.commandCenterServer) {
+      await this.commandCenterServer.stop();
+      this.commandCenterServer = null;
+    }
     if (this.openclawGateway) {
       await this.openclawGateway.stop();
       this.openclawGateway = null;

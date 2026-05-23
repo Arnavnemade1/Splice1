@@ -23,6 +23,7 @@ function help() {
     'Usage:',
     '  splice logo',
     '  splice validate',
+    '  splice dashboard [--port <port>]',
     '  splice config show',
     '  splice config set-gemini-key <key>',
     '  splice agents list',
@@ -79,6 +80,22 @@ async function main() {
     console.log(`\nLocal validation report: ${result.reportPath}`);
     if (result.commandCenterPath) console.log(`Command Center report: ${result.commandCenterPath}`);
     if (result.failed > 0) process.exit(1);
+    return;
+  }
+
+  if (command === 'dashboard') {
+    const preferredPort = typeof flags.port === 'string' ? Number(flags.port) : undefined;
+    const { BrowserManager } = await import('./BrowserManager.js');
+    const browser = new BrowserManager();
+    let launch;
+    try {
+      launch = await browser.launchCommandCenter(Number.isFinite(preferredPort) ? preferredPort : undefined);
+    } catch {
+      await browser.init();
+      launch = await browser.launchCommandCenter(Number.isFinite(preferredPort) ? preferredPort : undefined);
+    }
+    console.log(`Command Center running at ${launch.url}`);
+    console.log(`Latest report: ${launch.reportPath}`);
     return;
   }
 

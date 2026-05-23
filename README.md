@@ -253,9 +253,53 @@ splice-mcp
 }
 ```
 
+### Other MCP Clients
+
+Splice can be used from any application that supports the Model Context Protocol and stdio servers.
+
+Use the built server entrypoint:
+
+```bash
+node /absolute/path/to/Splice/dist/index.js
+```
+
+Or, if the app prefers a Python entrypoint:
+
+```bash
+splice-mcp
+```
+
+Typical MCP client config shape:
+
+```json
+{
+  "mcpServers": {
+    "splice": {
+      "command": "node",
+      "args": ["/absolute/path/to/Splice/dist/index.js"]
+    }
+  }
+}
+```
+
+If your MCP-capable app lets you choose between multiple transports, use `stdio`.
+
 ### Command Center
 
-Splice runs headless by default. Opt in to opening the local dashboard:
+Splice runs headless by default. You can open the Command Center in a browser-friendly localhost viewer:
+
+```bash
+npm run build
+node dist/cli.js dashboard
+```
+
+That starts a local server, typically at:
+
+```bash
+http://127.0.0.1:4821
+```
+
+Splice can also auto-open the localhost Command Center when the MCP server starts:
 
 ```bash
 SPLICE_AUTO_OPEN_DASHBOARD=1 node dist/index.js
@@ -267,6 +311,17 @@ You can also generate a report from the MCP tool:
 {
   "name": "generate_observability_report",
   "arguments": {}
+}
+```
+
+Or launch the localhost viewer directly from MCP:
+
+```json
+{
+  "name": "launch_command_center",
+  "arguments": {
+    "preferredPort": 4821
+  }
 }
 ```
 

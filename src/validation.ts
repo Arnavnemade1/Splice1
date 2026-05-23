@@ -324,6 +324,15 @@ export async function runLocalValidation() {
       if (!html.includes('Splice Command Center')) throw new Error('Generated dashboard HTML is invalid.');
       return commandCenterPath;
     });
+
+    await step('Command Center localhost server', async () => {
+      const launch = await browser.launchCommandCenter();
+      const response = await fetch(`${launch.url}/health`);
+      if (!response.ok) throw new Error(`Health check failed with status ${response.status}.`);
+      const html = await fetch(launch.url).then(res => res.text());
+      if (!html.includes('Splice Command Center')) throw new Error('Command Center localhost response did not include dashboard HTML.');
+      return launch.url;
+    });
   } finally {
     await browser.close().catch(() => {});
     await fixture.close().catch(() => {});
