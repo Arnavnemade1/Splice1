@@ -4,7 +4,7 @@
 
 ### Browser cognition infrastructure for autonomous coding agents
 
-[![CI](https://github.com/Arnavnemade1/Splice/workflows/CI/badge.svg)](https://github.com/Arnavnemade1/Splice/actions)
+[![CI](https://github.com/NikMuv142/Splice/workflows/CI/badge.svg)](https://github.com/NikMuv142/Splice/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6+-3178c6.svg)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776ab.svg)](https://www.python.org/)
@@ -137,7 +137,7 @@ The local dashboard turns a browser run into an inspectable operations console:
 
 ### OpenClaw Gateway
 
-Splice ships an optional local [OpenClaw](https://github.com/Arnavnemade1/Splice) control gateway that lets OpenClaw-compatible agents connect directly over a low-latency WebSocket channel. The gateway is **disabled by default** and never opens a network socket unless explicitly opted in.
+Splice ships an optional local [OpenClaw](https://github.com/NikMuv142/Splice) control gateway that lets OpenClaw-compatible agents connect directly over a low-latency WebSocket channel. The gateway is **disabled by default** and never opens a network socket unless explicitly opted in.
 
 ```bash
 # Enable at startup
@@ -221,7 +221,7 @@ Splice uses a TypeScript core for browser control and a Python MCP wrapper for a
 ### Node MCP Server
 
 ```bash
-git clone https://github.com/Arnavnemade1/Splice.git
+git clone https://github.com/NikMuv142/Splice.git
 cd Splice
 npm install
 npm run build
@@ -231,7 +231,7 @@ node dist/index.js
 ### Python MCP Wrapper
 
 ```bash
-git clone https://github.com/Arnavnemade1/Splice.git
+git clone https://github.com/NikMuv142/Splice.git
 cd Splice
 npm install
 npm run build
